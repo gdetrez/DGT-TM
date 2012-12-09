@@ -9,7 +9,6 @@ The format of the output is a simple txt file with one segment per line.
 from __future__ import division
 import xml.sax
 import os, sys
-import xml.etree.ElementTree as ET
 import random
 
 class Walkerrandom:
@@ -104,7 +103,6 @@ class TMXContentHandler(xml.sax.ContentHandler):
       self.bin = None
 
     self.i += 1
-    #if self.i > 110: assert False
 
 def mkFilename(oldname,*exts):
   base,_ = os.path.splitext(oldname)
