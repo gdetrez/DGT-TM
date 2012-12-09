@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+"""tmx2txt
+This is a simple script that reads a TMX (translation memory) file
+and extracts segments for one or more languages.
+
+The format of the output is a simple txt file with one segment per line.
+"""
+
+import xml.sax
+import os
+import xml.etree.ElementTree as ET
+
+def mkFilename(oldname,ext):
+  base,_ = os.path.splitext(oldname)
+  return "%s.%s" % (base, ext)
+  
+if __name__ == "__main__":
+  import argparse, codecs
+  parser = argparse.ArgumentParser(description='Extract segments from TMX files')
+  parser.add_argument('corpus', metavar='CORPUS.TMX', type=unicode,
+                      help='The tmx file')
+  parser.add_argument('languages', metavar='LANG', type=unicode, nargs='+',
+                      help='Languages to extract')
+  parser.add_argument('--encoding', dest='encoding', action='store', default="utf-8",
+                   help='TMX file encoding (default: utf-8)')
+  args = parser.parse_args()
+
+  outputs = {}
+  for l in args.languages:
+    outputs[l] = codecs.open(mkFilename(args.corpus, "%s.txt" % l), 'w', 'utf-8')
+
+  parser = ET.XMLParser(encoding=args.encoding)
+
+  try:
+    for _,elem in ET.iterparse(args.corpus, parser=parser):
+      if elem.tag == 'tu':
+        for tuv in elem.findall("./tuv"):
+          # Check that there is only one child
+          assert len(tuv) == 1, "There should be only one child, there is %d" % len(tuv)
+          # Check that there is no new lines in the segment
+          assert tuv[0].text.find("\n") == -1
+          
+          if tuv.get('lang') in outputs:
+            print >> outputs[tuv.get('lang')], tuv[0].text
+        elem.clear()
+  except AssertionError, e:
+    print e
+    import IPython
+    IPython.embed()
