@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- mode: python -*-
+# -*- coding: utf-8 -*-
 """tmx2txt
 This is a simple script that reads a TMX (translation memory) file
 and extracts segments for one or more languages.
@@ -60,7 +60,7 @@ class Walkerrandom:
 
 class TMXContentHandler(xml.sax.ContentHandler):
 
-  def __init__(self, outputs, split):
+  def __init__(self, outputs, split=None):
     xml.sax.ContentHandler.__init__(self)
     # Parameters
     if split:
@@ -150,6 +150,8 @@ if __name__ == "__main__":
 #
 # This section contains some tests for the different part of the program.
 # Use nosetests to run.
+from collections import defaultdict
+from StringIO import StringIO
 
 class TestMkFilename(unittest.TestCase):
 
@@ -164,6 +166,48 @@ class TestMkFilename(unittest.TestCase):
       name = mkFilename("file.tmx","a", "b", "c")
       self.assertEqual("file.a.b.c",name)
 
+
+class TestWalkerrandom(unittest.TestCase):
+
+  def setUp(self):
+    pass
+
+  def test_bins(self):
+    weights = [1,2,3]
+    N = 100000
+    wrandom = Walkerrandom(weights)
+    result = defaultdict(lambda: 0)
+    for i in range(N):
+      result[wrandom.random()] += 1
+    print result
+    for i,w in enumerate(weights):
+      self.assertAlmostEqual(w/sum(weights),result[i]/N, places=2)
+
+
+class TestTMXContentHandler(unittest.TestCase):
+  xml = """<?xml version="1.0" ?>
+<!DOCTYPE tmx SYSTEM "tmx11.dtd">
+<tmx version="version 1.1">
+<body>
+<tu>
+<prop type="Txt::Doc. No.">22004A0520(01)R(01)</prop>
+<tuv lang="fr"><seg>Un éléphant dans in magasin de poecelaine</seg></tuv>
+<tuv lang="en"><seg>A bull in a china shop</seg></tuv>
+</tu>
+</body>
+</tmx>
+"""
+
+  def test_handler(self):
+    outputs = {
+      'fr': StringIO(),
+      'en': StringIO()
+      }
+    xml.sax.parse(StringIO(self.xml), TMXContentHandler(outputs))
+    self.assertEqual(u"Un éléphant dans in magasin de poecelaine\n",
+                     outputs['fr'].getvalue())
+    self.assertEqual(u"A bull in a china shop\n",
+                     outputs['en'].getvalue())    
 
 ###############################################################################
 ###############################################################################
