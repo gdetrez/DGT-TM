@@ -10,6 +10,7 @@ from __future__ import division
 import xml.sax
 import os, sys
 import random
+import unittest
 
 class Walkerrandom:
   """ Walker's alias method for random objects with different probablities
@@ -107,9 +108,10 @@ class TMXContentHandler(xml.sax.ContentHandler):
 def mkFilename(oldname,*exts):
   base,_ = os.path.splitext(oldname)
   return ".".join((base,) + exts)
-  
+
 if __name__ == "__main__":
   import argparse, codecs
+
   parser = argparse.ArgumentParser(description='Extract segments from TMX files')
   parser.add_argument('corpus', metavar='CORPUS.TMX', type=unicode,
                       help='The tmx file')
@@ -119,6 +121,7 @@ if __name__ == "__main__":
                       type=int, nargs=3, action='store', default=None,
                       help='Split the corpus in multiple parts')
   args = parser.parse_args()
+
 
   outputs = {}
   try:
@@ -138,3 +141,30 @@ if __name__ == "__main__":
         for f in outputs[l]: f.close()
       else:
         outputs[l].close()
+
+
+###############################################################################
+###############################################################################
+###############################################################################
+# TESTS
+#
+# This section contains some tests for the different part of the program.
+# Use nosetests to run.
+
+class TestMkFilename(unittest.TestCase):
+
+    def setUp(self):
+        self.seq = range(10)
+
+    def test_simple(self):
+      name = mkFilename("file.tmx","jpg")
+      self.assertEqual("file.jpg",name)
+
+    def test_multiple(self):
+      name = mkFilename("file.tmx","a", "b", "c")
+      self.assertEqual("file.a.b.c",name)
+
+
+###############################################################################
+###############################################################################
+###############################################################################
