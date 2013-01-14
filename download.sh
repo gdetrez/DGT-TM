@@ -49,3 +49,4 @@ do
 	wget -Nc $f
 done;
 
+md5sum -c hashes.md5
